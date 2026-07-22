@@ -1,0 +1,51 @@
+{% extends "booking/base.html" %}
+{% block title %}{{ event.name }}{% endblock %}
+{% block content %}
+  <p class="eyebrow">{{ event.venue }}</p>
+  <h1>{{ event.name }}</h1>
+  <p>{{ event.description }}</p>
+  <p class="ticket-meta">{{ event.date }} &middot; ${{ event.price }} per seat</p>
+
+  <hr class="tear-line">
+
+  {% if user.is_authenticated %}
+    <form method="POST" action="{% url 'book-seats' event.id %}" id="booking-form">
+      {% csrf_token %}
+      <h3>Select Your Seats</h3>
+      <div class="seat-grid">
+        {% for seat in available_seats %}
+          <label>
+            <input type="checkbox" name="seat_ids" value="{{ seat.id }}" data-seat="{{ seat.seat_number }}">
+            <span>{{ seat.seat_number }}</span>
+          </label>
+        {% empty %}
+          <p>No seats available.</p>
+        {% endfor %}
+      </div>
+      <button type="submit">Book Now</button>
+    </form>
+
+    <script>
+      document.getElementById("booking-form").addEventListener("submit", function (e) {
+        const checked = this.querySelectorAll('input[name="seat_ids"]:checked');
+
+        if (checked.length === 0) {
+          e.preventDefault();
+          alert("Please select at least one seat.");
+          return;
+        }
+
+        const seatNumbers = Array.from(checked).map(el => el.dataset.seat).join(", ");
+        const confirmed = confirm(
+          "Are you sure you want to book this ticket with seat(s): " + seatNumbers + "?"
+        );
+
+        if (!confirmed) {
+          e.preventDefault();
+        }
+      });
+    </script>
+  {% else %}
+    <p>Please <a href="{% url 'login' %}">log in</a> to book seats.</p>
+  {% endif %}
+{% endblock %}

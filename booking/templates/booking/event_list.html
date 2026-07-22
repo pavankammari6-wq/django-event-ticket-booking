@@ -1,0 +1,18 @@
+{% extends "booking/base.html" %}
+{% block title %}Upcoming Events{% endblock %}
+{% block content %}
+  <p class="eyebrow">Now Booking</p>
+  <h1>Upcoming Events</h1>
+
+  {% for event in events %}
+    <div class="ticket">
+      <div class="ticket-info">
+        <a href="{% url 'event-detail' event.pk %}">{{ event.name }}</a>
+        <div class="ticket-meta">{{ event.date }} &middot; {{ event.venue }}</div>
+      </div>
+      <div class="seats-left">{{ event.available_seats_count }} LEFT</div>
+    </div>
+  {% empty %}
+    <p>No events yet. Check back soon.</p>
+  {% endfor %}
+{% endblock %}

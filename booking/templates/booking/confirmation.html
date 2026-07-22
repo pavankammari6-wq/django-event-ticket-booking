@@ -1,0 +1,19 @@
+{% extends "booking/base.html" %}
+{% block title %}Booking Confirmed{% endblock %}
+{% block content %}
+  <p class="eyebrow">Confirmed</p>
+  <h1>You're In</h1>
+
+  <div class="ticket">
+    <div class="ticket-info">
+      <a href="{% url 'event-detail' booking.event.pk %}">{{ booking.event.name }}</a>
+      <div class="ticket-meta">
+        Seats: {% for seat in booking.seats.all %}{{ seat.seat_number }}{% if not forloop.last %}, {% endif %}{% endfor %}
+      </div>
+      <div class="ticket-meta">Total: ${{ booking.total_amount }}</div>
+    </div>
+    <span class="status-badge">{{ booking.status }}</span>
+  </div>
+
+  <p><a href="{% url 'event-list' %}">&larr; Back to events</a></p>
+{% endblock %}

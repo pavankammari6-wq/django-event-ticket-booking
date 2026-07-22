@@ -1,0 +1,30 @@
+{% extends "booking/base.html" %}
+{% block title %}My Bookings{% endblock %}
+{% block content %}
+  <p class="eyebrow">Your Tickets</p>
+  <h1>My Bookings</h1>
+
+  {% for booking in bookings %}
+    <div class="ticket">
+      <div class="ticket-info">
+        <a href="{% url 'event-detail' booking.event.pk %}">{{ booking.event.name }}</a>
+        <div class="ticket-meta">
+          Seats: {% for seat in booking.seats.all %}{{ seat.seat_number }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </div>
+        <div class="ticket-meta">${{ booking.total_amount }} &middot; {{ booking.booking_date|date:"d M Y" }}</div>
+      </div>
+      <div style="text-align: right;">
+        <span class="status-badge">{{ booking.status }}</span>
+        {% if booking.status == "CONFIRMED" %}
+          <form method="POST" action="{% url 'cancel-booking' booking.id %}" style="margin-top: 8px;"
+                onsubmit="return confirm('Cancel this booking for seat(s): {% for seat in booking.seats.all %}{{ seat.seat_number }}{% if not forloop.last %}, {% endif %}{% endfor %}?');">
+            {% csrf_token %}
+            <button type="submit" style="background: var(--danger); color: #fff; font-size: 12px; padding: 6px 12px;">Cancel</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  {% empty %}
+    <p>You haven't booked anything yet. <a href="{% url 'event-list' %}">Browse events</a>.</p>
+  {% endfor %}
+{% endblock %}

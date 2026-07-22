@@ -1,0 +1,12 @@
+{% extends "booking/base.html" %}
+{% block title %}Sign Up{% endblock %}
+{% block content %}
+  <p class="eyebrow">New Here</p>
+  <h1>Create Account</h1>
+  <form method="POST">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Create Account</button>
+  </form>
+  <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+{% endblock %}
