@@ -120,8 +120,6 @@ def signup(request):
         form = UserCreationForm()
     return render(request, "registration/signup.html", {"form": form})
 
-
-import anthropic
 from django.conf import settings
 
 @login_required
