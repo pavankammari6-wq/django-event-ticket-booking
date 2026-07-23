@@ -127,37 +127,19 @@ from django.conf import settings
 def chatbot_reply(request):
     try:
         data = json.loads(request.body)
-        message = data.get("message", "").strip()
+        message = data.get("message", "").strip().lower()
     except (json.JSONDecodeError, AttributeError):
         return JsonResponse({"reply": "Sorry, I didn't understand that."}, status=400)
 
+    reply = ""
+
     if not message:
-        return JsonResponse({"reply": "Say something and I'll try to help!"})
+        reply = "Say something and I'll try to help!"
 
-    system_prompt = """You are a ticket booking assistant. Based on the user's message,
-respond with ONLY a JSON object (no other text) in this exact format:
-{"intent": "show_events"} — if they want to see upcoming events
-{"intent": "my_bookings"} — if they want to see their bookings
-{"intent": "help"} — if they're asking what you can do
-{"intent": "unknown"} — if it doesn't match any of the above
-"""
+    elif re.search(r"\b(hi|hello|hey)\b", message):
+        reply = f"Hey {request.user.username}! I can show events, your bookings, or help you cancel one. Try 'show events' or 'my bookings'."
 
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=100,
-        system=system_prompt,
-        messages=[{"role": "user", "content": message}],
-    )
-
-    try:
-        raw_text = response.content[0].text.strip()
-        intent_data = json.loads(raw_text)
-        intent = intent_data.get("intent", "unknown")
-    except (json.JSONDecodeError, IndexError):
-        intent = "unknown"
-
-    # --- your existing logic decides what actually happens ---
-    if intent == "show_events":
+    elif "event" in message or "show" in message:
         events = Event.objects.order_by("date")[:5]
         if events:
             lines = [f"- {e.name} on {e.date.strftime('%d %b, %I:%M %p')} ({e.available_seats_count} seats left)" for e in events]
@@ -165,7 +147,7 @@ respond with ONLY a JSON object (no other text) in this exact format:
         else:
             reply = "There are no events listed right now."
 
-    elif intent == "my_bookings":
+    elif "my booking" in message or "bookings" in message:
         bookings = Booking.objects.filter(user=request.user, status="CONFIRMED").order_by("-booking_date")[:5]
         if bookings:
             lines = [f"- {b.event.name}: seats {', '.join(s.seat_number for s in b.seats.all())}" for b in bookings]
@@ -173,10 +155,13 @@ respond with ONLY a JSON object (no other text) in this exact format:
         else:
             reply = "You don't have any confirmed bookings yet."
 
-    elif intent == "help":
-        reply = "You can ask me to show events, check your bookings, or just say hi!"
+    elif "cancel" in message:
+        reply = "To cancel a booking, go to 'My Bookings' from the menu and hit the Cancel button next to the one you want to cancel."
+
+    elif "help" in message:
+        reply = "You can ask me things like: 'show events', 'my bookings', or 'how do I cancel a booking'."
 
     else:
-        reply = "I'm not sure about that. Try asking about events or your bookings."
+        reply = "I'm not sure about that yet. Try 'show events', 'my bookings', or 'help'."
 
     return JsonResponse({"reply": reply})
