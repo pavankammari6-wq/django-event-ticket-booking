@@ -134,8 +134,6 @@ def chatbot_reply(request):
     if not message:
         return JsonResponse({"reply": "Say something and I'll try to help!"})
 
-    client = anthropic.Anthropic(api_key=settings.ANTHROPIC_API_KEY)
-
     system_prompt = """You are a ticket booking assistant. Based on the user's message,
 respond with ONLY a JSON object (no other text) in this exact format:
 {"intent": "show_events"} — if they want to see upcoming events
